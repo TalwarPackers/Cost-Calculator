@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Packaging Cost Calculator</title>
+  <style>
+    body { font-family: Arial; max-width: 500px; margin: 20px auto; padding: 20px; }
+    .input-group { margin: 15px 0; }
+    label { display: block; margin-bottom: 5px; }
+    input { 
+      width: 100%; padding: 8px; box-sizing: border-box;
+      -moz-appearance: textfield; 
+    }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { 
+      -webkit-appearance: none; margin: 0; 
+    }
+    button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+    #result { margin-top: 20px; padding: 15px; background: #f0f0f0; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h2>Packaging Cost Calculator</h2>
+  
+  <!-- User Inputs -->
+  <div class="input-group">
+    <label>Length (cm):</label>
+    <input type="text" id="length" inputmode="decimal" placeholder="e.g. 31">
+  </div>
+  <div class="input-group">
+    <label>Width (cm):</label>
+    <input type="text" id="width" inputmode="decimal" placeholder="e.g. 27">
+  </div>
+  <div class="input-group">
+    <label>GSM:</label>
+    <input type="text" id="gsm" inputmode="decimal" placeholder="e.g. 280">
+  </div>
+  <div class="input-group">
+    <label>Rate (per kg):</label>
+    <input type="text" id="rate" inputmode="decimal" placeholder="e.g. 40">
+  </div>
+  <div class="input-group">
+    <label>Special Color Cost:</label>
+    <input type="text" id="spl_col" inputmode="decimal" placeholder="e.g. 2">
+  </div>
+  <div class="input-group">
+    <label>Matt Lamination Rate:</label>
+    <input type="text" id="matt_rate" inputmode="decimal" placeholder="e.g. 1">
+  </div>
+
+  <button onclick="calculate()">Calculate</button>
+
+  <!-- Result -->
+  <div id="result"></div>
+
+  <script>
+    function calculate() {
+      // Fixed values from Excel
+      const GSM_PLY2 = 100, GSM_PLY3 = 140, CORRUGATION_RATE = 32;
+
+      // Parse inputs (handles commas/decimals)
+      const sanitize = (value) => parseFloat(value.replace(/,/g, '.')) || 0;
+      const L = sanitize(document.getElementById('length').value);
+      const W = sanitize(document.getElementById('width').value);
+      const GSM = sanitize(document.getElementById('gsm').value);
+      const RATE = sanitize(document.getElementById('rate').value);
+      const SPL_COL = sanitize(document.getElementById('spl_col').value);
+      const MATT_RATE = sanitize(document.getElementById('matt_rate').value);
+
+      // ---- Excel Formulas ----
+      // Sheet Weight (F)
+      const F = (L + 1) * (W + 1) * GSM / 15502 / 100;
+      // Sheet Rate (H)
+      const H = F * RATE;
+      // Corrugation Cost (M)
+      const K = (L * W) * (1.5 * GSM_PLY2 + GSM_PLY3) / 1550200;
+      const M = K * CORRUGATION_RATE;
+      // Special Color (Q)
+      const Q = SPL_COL * 0.5;
+      // Matt Lamination (S)
+      const S = (L * W / 325) * MATT_RATE;
+      // Making Cost (V)
+      const V = 0.15 * (H + M);
+      // SUB TOTAL (W)
+      const SUB_TOTAL = H + M + Q + S + V;
+      // Wastage (2% of SUB TOTAL)
+      const WASTAGE = SUB_TOTAL * 0.02;
+      // Cartage (2% of SUB TOTAL)
+      const CARTAGE = SUB_TOTAL * 0.02;
+      // Mark Up (15% of SUB TOTAL + Wastage + Cartage)
+      const MARK_UP = (SUB_TOTAL + WASTAGE + CARTAGE) * 0.15;
+      // FINAL RATE PER SHEET (AA)
+      const FINAL_RATE = SUB_TOTAL + WASTAGE + CARTAGE + MARK_UP;
+
+      // Display result
+      document.getElementById('result').innerHTML = `
+        <h3>RATE PER SHEET: ₹${FINAL_RATE.toFixed(2)}</h3>
+      `;
+    }
+  </script>
+</body>
+</html>
